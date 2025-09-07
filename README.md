@@ -1,4 +1,4 @@
-# Mastering Backend Development with Chai aur Javascript Backend Playlist
+# 🌐 Mastering Backend Development with Chai aur Javascript Backend Playlist
 
 I am currently learning backend development through the **Chai aur Javascript Backend** playlist by **Chai aur Code** on YouTube. This comprehensive playlist covers essential backend concepts, tools, and techniques using JavaScript, with practical examples and debugging tips. Below is a structured overview of the playlist content, organized by key topics for clarity.
 
