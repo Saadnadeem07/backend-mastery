@@ -16,15 +16,14 @@ const app = express();
  */
 connectDB()
   .then(() => {
-    // ------------------- Server Setup -------------------
-    app.listen(process.env.PORT || 5000, () => {
-      console.log(`✅ Server is running on PORT ${process.env.PORT}`);
-    });
-
     // Handle server-level errors gracefully
     app.on("error", (error) => {
       console.error("❌ Server failed to start:", error);
       throw error;
+    });
+    // ------------------- Server Setup -------------------
+    app.listen(process.env.PORT || 5000, () => {
+      console.log(`✅ Server is running on PORT ${process.env.PORT}`);
     });
   })
   .catch((err) => {
