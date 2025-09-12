@@ -10,6 +10,8 @@ import { DB_NAME } from "../constants.js";
  * - Gracefully handles errors and prevents the app from running
  *   without a database connection.
  */
+
+//connect db is a async function so it always return a promise
 const connectDB = async () => {
   try {
     const mongoURI = `${process.env.MONGODB_URI}/${DB_NAME}`;
@@ -24,6 +26,5 @@ const connectDB = async () => {
     console.error("❌ MongoDB connection error:", error);
     process.exit(1); // Exit process if DB connection fails
   }
-};
-
+}; 
 export default connectDB;

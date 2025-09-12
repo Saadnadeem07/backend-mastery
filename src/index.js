@@ -14,6 +14,7 @@ const app = express();
  * Using a modular approach keeps the codebase clean, scalable,
  * and easier to maintain compared to inline DB connection logic.
  */
+//connect db was a async function so it always return a promise
 connectDB()
   .then(() => {
     // Handle server-level errors gracefully
