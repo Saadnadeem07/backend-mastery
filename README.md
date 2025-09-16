@@ -74,14 +74,6 @@ highlights maintainability, scalability, and developer ergonomics.
 -   **Custom Error Classes** for predictable error states
 -   **Standardized API Responses** for consistent client handling
 
-### 📂 Project Structure
-
-src/ ├─ controllers/ \# Request handlers ├─ models/ \# Mongoose schemas
-├─ routes/ \# Express routers ├─ middlewares/ \# Auth & validation ├─
-utils/ \# Helpers & custom errors └─ docs/ \# Complete developer guide
-
-All detailed explanations and setup guides live in the **docs/** folder.
-
 ------------------------------------------------------------------------
 
 ## 🛠️ Getting Started
@@ -107,7 +99,7 @@ npm run dev
 ## 📚 Documentation
 
 -   Full step-by-step guide, API reference, and schema diagrams are
-    inside the **docs/** directory.\
+    inside the **/docs** directory.
 -   For visual schema overview, check the [Model
     Link](https://app.eraser.io/workspace/YtPqZ1VogxGy1jzIDkzj).
 
