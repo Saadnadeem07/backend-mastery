@@ -81,7 +81,6 @@ highlights maintainability, scalability, and developer ergonomics.
 ``` bash
 # 1️⃣ Clone the repo
 git clone https://github.com/yourusername/backend-project.git
-cd backend-project
 
 # 2️⃣ Install dependencies
 npm install
