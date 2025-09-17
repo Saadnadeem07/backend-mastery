@@ -1,12 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./db/index.js"; // Modular DB connection
-
+import { app } from "./app.js";
 // Initialize environment variables
 dotenv.config();
-
-// Create an Express application
-const app = express();
 
 // ------------------- Database Connection -------------------
 /**
@@ -23,8 +20,9 @@ connectDB()
       throw error;
     });
     // ------------------- Server Setup -------------------
-    app.listen(process.env.PORT || 5000, () => {
-      console.log(`✅ Server is running on PORT ${process.env.PORT}`);
+    const PORT = process.env.PORT || 8000;
+    app.listen(PORT, () => {
+      console.log(`✅ Server is running on PORT ${PORT}`);
     });
   })
   .catch((err) => {

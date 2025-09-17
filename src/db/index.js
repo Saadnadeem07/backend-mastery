@@ -15,8 +15,10 @@ import { DB_NAME } from "../constants.js";
 const connectDB = async () => {
   try {
     const mongoURI = `${process.env.MONGODB_URI}/${DB_NAME}`;
-    console.log(`🔗 Attempting MongoDB connection at: ${mongoURI}`);
 
+    //console.log(`🔗 Attempting MongoDB connection at: ${mongoURI}`);
+    //if u did console-log any user can see it -- BLUNDER
+    
     const connectionInstance = await mongoose.connect(mongoURI);
 
     console.log(
@@ -26,5 +28,5 @@ const connectDB = async () => {
     console.error("❌ MongoDB connection error:", error);
     process.exit(1); // Exit process if DB connection fails
   }
-}; 
+};
 export default connectDB;

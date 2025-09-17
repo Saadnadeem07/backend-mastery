@@ -1,10 +1,8 @@
 //aik async handler naam ka funciton hay jis ky paramter main aik function araha hay
 
 const asyncHandler = (requestHandler) => {
-  return (err, req, res, next) => {
-    Promise.resolve(requestHandler(err, req, res, next)).catch((err) =>
-      next(err)
-    );
+  return (req, res, next) => {
+    Promise.resolve(requestHandler(req, res, next)).catch((err) => next(err));
   };
 };
 
