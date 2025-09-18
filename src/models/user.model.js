@@ -71,7 +71,7 @@ const userSchema = new mongoose.Schema(
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return; // Skip if password wasn’t changed.
 
-  this.password = bcrypt.hash(this.password, 10); // Hash with salt rounds = 10.
+  this.password = await bcrypt.hash(this.password, 10); // Hash with salt rounds = 10.
   next();
 });
 
