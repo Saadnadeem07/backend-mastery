@@ -18,7 +18,7 @@ const connectDB = async () => {
 
     //console.log(`🔗 Attempting MongoDB connection at: ${mongoURI}`);
     //if u did console-log any user can see it -- BLUNDER
-    
+
     const connectionInstance = await mongoose.connect(mongoURI);
 
     console.log(

@@ -1,16 +1,10 @@
-import express from "express";
 import dotenv from "dotenv";
-import connectDB from "./db/index.js"; // Modular DB connection
-import { app } from "./app.js";
 // Initialize environment variables
 dotenv.config();
 
-// ------------------- Database Connection -------------------
-/**
- * Establish connection with MongoDB before starting the server.
- * Using a modular approach keeps the codebase clean, scalable,
- * and easier to maintain compared to inline DB connection logic.
- */
+import connectDB from "./db/index.js"; // Modular DB connection
+import { app } from "./app.js";
+
 //connect db was a async function so it always return a promise
 connectDB()
   .then(() => {

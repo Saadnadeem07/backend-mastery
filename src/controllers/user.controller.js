@@ -17,7 +17,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   // Check if a user with the same username or email already exists
-  const existedUser = User.findOne({
+  const existedUser = await User.findOne({
     $or: [{ username }, { email }],
   });
 
@@ -28,6 +28,9 @@ const registerUser = asyncHandler(async (req, res) => {
   // Retrieve local file paths of avatar and optional cover image
   const avatarLocalPath = req.files?.avatar?.[0]?.path;
   const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
+
+  console.log("avatarLocalPath:", avatarLocalPath);
+  console.log("coverImageLocalPath:", coverImageLocalPath);
 
   // Avatar is mandatory for registration
   if (!avatarLocalPath) {
@@ -44,7 +47,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // Create a new user document in the database
   const user = await User.create({
-    fullname,
+    fullname: fullname.toLowerCase(),
     avatar: avatar.url,
     coverImage: coverImage?.url || "",
     email,
@@ -60,6 +63,8 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!createdUser) {
     throw new ApiError(500, "User creation failed due to a server error");
   }
+
+  console.log("User created successfully!", createdUser);
 
   // Send success response to the client
   return res

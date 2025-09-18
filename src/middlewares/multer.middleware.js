@@ -6,7 +6,14 @@
 // further (e.g., uploaded to Cloudinary).
 
 import multer from "multer";
+import path from "path";
+import { fileURLToPath } from "url";
 
+// Get current file's directory (because ES Modules don’t have __dirname)
+const x = fileURLToPath(import.meta.url);
+const y = path.dirname(x);
+
+console.log(y);
 // Configure disk storage for uploaded files.
 // ------------------------------------------
 // destination: Directory path where the file will be stored temporarily.
@@ -16,7 +23,8 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     // Store files in a temporary public directory.
     // Ensure this folder exists (e.g., create /public/temp in your project root).
-    cb(null, "/public/temp");
+    cb(null, path.join(y, "../../public/temp"));
+    //cb(null, "../../public/temp");
   },
 
   // Generate a unique filename for each uploaded file.

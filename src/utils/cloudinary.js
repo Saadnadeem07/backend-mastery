@@ -5,6 +5,9 @@
 // managed storage/CDN. After a successful upload, the file is accessible
 // globally via the returned secure URL.
 
+import dotenv from "dotenv";
+dotenv.config();
+
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
@@ -37,6 +40,8 @@ const uploadOnCloudinary = async (localFilePath) => {
       "✅ File uploaded successfully to Cloudinary:",
       response.secure_url
     );
+    fs.unlinkSync(localFilePath);
+    console.log(localFilePath);
     return response;
   } catch (error) {
     // ⚠️ If upload fails, delete the temporary file to prevent disk bloat.
