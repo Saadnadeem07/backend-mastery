@@ -94,89 +94,97 @@ const registerUser = asyncHandler(async (req, res) => {
 
 // Controller: Login an existing user
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, username, password } = req.body;
+  try {
+    const { email, username, password } = req.body;
+    // Validate that either email or username is provided
+    if (!(email || username)) {
+      throw new ApiError(400, "Email or username is required");
+    }
 
-  // Validate that either email or username is provided
-  if (!email || !username) {
-    throw new ApiError(400, "Email or username is required");
-  }
+    // Find user by email or username
+    const user = await User.findOne({
+      $or: [{ email }, { username }],
+    });
 
-  // Find user by email or username
-  const user = await User.findOne({
-    $or: [{ email }, { username }],
-  });
+    if (!user) {
+      throw new ApiResponse(404, "User not Found");
+    }
 
-  if (!user) {
-    throw new ApiResponse(404, "User not Found");
-  }
+    // Verify password correctness
+    const isPasswordValid = await user.isPasswordCorrect(password);
+    if (!isPasswordValid) {
+      throw new ApiResponse(401, "Invalid Password! ");
+    }
 
-  // Verify password correctness
-  const isPasswordValid = await user.isPasswordCorrect(password);
-  if (!isPasswordValid) {
-    throw new ApiResponse(401, "Invalid Password! ");
-  }
-
-  // Generate access and refresh tokens
-  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
-    user._id
-  );
-
-  // Retrieve user without sensitive fields
-  const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken"
-  );
-
-  // Cookie options for secure storage
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
-
-  // Send tokens + user data in response
-  return res
-    .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .json(
-      new ApiResponse(
-        200,
-        {
-          user: loggedInUser,
-          accessToken,
-          refreshToken,
-        },
-        "User logged in Successfully"
-      )
+    // Generate access and refresh tokens
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+      user._id
     );
+
+    // Retrieve user without sensitive fields
+    const loggedInUser = await User.findById(user._id).select(
+      "-password -refreshToken"
+    );
+
+    // Cookie options for secure storage
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+
+    // Send tokens + user data in response
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          {
+            user: loggedInUser,
+            accessToken,
+            refreshToken,
+          },
+          "User logged in Successfully"
+        )
+      );
+  } catch (error) {
+    console.error(error, error.message);
+  }
 });
 
 // Controller: Logout a user
 const logoutUser = asyncHandler(async (req, res) => {
-  // Remove refresh token from DB
-  await User.findByIdAndUpdate(
-    req.body._id,
-    {
-      $set: {
-        refreshToken: undefined,
+  try {
+    //console.log("req.body n logout", req);
+    // Remove refresh token from DB
+    await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $set: {
+          refreshToken: undefined,
+        },
       },
-    },
-    {
-      new: true,
-    }
-  );
+      {
+        new: true,
+      }
+    );
 
-  // Cookie options
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
+    // Cookie options
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
 
-  // Clear cookies and send response
-  res
-    .status(200)
-    .clearCookies("accessToken", options)
-    .clearCookies("refreshToken", options)
-    .json(200, {}, "User logged out successfully");
+    // Clear cookies and send response
+    res
+      .status(200)
+      .clearCookie("accessToken", options)
+      .clearCookie("refreshToken", options)
+      .json(200, "User logged out successfully");
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 // Export controllers

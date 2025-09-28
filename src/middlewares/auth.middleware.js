@@ -1,5 +1,5 @@
 import { User } from "../models/user.model.js"; // Import User model from database models
-import { ApiError } from "../utils/asyncHandler.js"; // Import custom error handler class
+import { ApiError } from "../utils/ApiError.js"; // Import custom error handler class
 import { asyncHandler } from "../utils/asyncHandler.js"; // Import async handler wrapper for routes
 import jwt from "jsonwebtoken"; // Import JWT library for token verification
 
@@ -32,7 +32,6 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
 
     // Attach user object to request for downstream access in controllers
     req.user = user;
-
     // Proceed to next middleware or controller
     next();
   } catch (error) {
