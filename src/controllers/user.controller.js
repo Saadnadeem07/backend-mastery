@@ -1,22 +1,42 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { asyncHandler } from "../utils/asyncHandler.js"; // Wrapper for handling async errors
+import { ApiError } from "../utils/ApiError.js"; // Custom API error response handler
+import { ApiResponse } from "../utils/ApiResponse.js"; // Standardized API response format
+import { User } from "../models/user.model.js"; // User model for DB operations
+import { uploadOnCloudinary } from "../utils/cloudinary.js"; // Utility for uploading files to Cloudinary
 
+// Utility function: Generate access and refresh tokens for a user
+const generateAccessAndRefreshToken = async (userId) => {
+  try {
+    const user = await User.findById(userId); // Find user by ID
+    const accessToken = user.generateAccessToken(); // Generate short-lived access token
+    const refreshToken = user.generateRefreshToken(); // Generate long-lived refresh token
+
+    user.refreshToken = refreshToken; // Save refresh token in user record
+    user.save({ validateBeforeSave: false }); // Save without re-validating all fields
+
+    return { accessToken, refreshToken }; // Return both tokens
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "something went wrong while generating refresha and access token"
+    );
+  }
+};
+
+// Controller: Register a new user
 const registerUser = asyncHandler(async (req, res) => {
-  // Extract user details from the request body
+  // Extract user details from request body
   const { username, email, fullname, password } = req.body;
   console.log("Incoming request body:", req.body);
 
-  // Validate that all required fields are provided and not empty
+  // Validate all required fields (none should be empty)
   if (
     [username, email, fullname, password].some((field) => field?.trim() === "")
   ) {
     throw new ApiError(400, "All fields are required");
   }
 
-  // Check if a user with the same username or email already exists
+  // Check if username or email already exists in DB
   const existedUser = await User.findOne({
     $or: [{ username }, { email }],
   });
@@ -25,7 +45,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User already exists");
   }
 
-  // Retrieve local file paths of avatar and optional cover image
+  // Extract file paths for avatar and optional cover image
   const avatarLocalPath = req.files?.avatar?.[0]?.path;
   const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
 
@@ -37,7 +57,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Avatar image is required");
   }
 
-  // Upload avatar (and cover image if provided) to Cloudinary
+  // Upload avatar and cover image to Cloudinary
   const avatar = await uploadOnCloudinary(avatarLocalPath);
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
@@ -45,7 +65,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Failed to upload avatar image");
   }
 
-  // Create a new user document in the database
+  // Create new user record in DB
   const user = await User.create({
     fullname: fullname.toLowerCase(),
     avatar: avatar.url,
@@ -55,7 +75,7 @@ const registerUser = asyncHandler(async (req, res) => {
     username: username.toLowerCase(),
   });
 
-  // Exclude sensitive fields (password & refreshToken) from the response
+  // Retrieve created user without sensitive fields
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
@@ -66,10 +86,98 @@ const registerUser = asyncHandler(async (req, res) => {
 
   console.log("User created successfully!", createdUser);
 
-  // Send success response to the client
+  // Send success response
   return res
     .status(201)
     .json(new ApiResponse(200, createdUser, "User created successfully"));
 });
 
-export { registerUser };
+// Controller: Login an existing user
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, username, password } = req.body;
+
+  // Validate that either email or username is provided
+  if (!email || !username) {
+    throw new ApiError(400, "Email or username is required");
+  }
+
+  // Find user by email or username
+  const user = await User.findOne({
+    $or: [{ email }, { username }],
+  });
+
+  if (!user) {
+    throw new ApiResponse(404, "User not Found");
+  }
+
+  // Verify password correctness
+  const isPasswordValid = await user.isPasswordCorrect(password);
+  if (!isPasswordValid) {
+    throw new ApiResponse(401, "Invalid Password! ");
+  }
+
+  // Generate access and refresh tokens
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+    user._id
+  );
+
+  // Retrieve user without sensitive fields
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
+
+  // Cookie options for secure storage
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  // Send tokens + user data in response
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user: loggedInUser,
+          accessToken,
+          refreshToken,
+        },
+        "User logged in Successfully"
+      )
+    );
+});
+
+// Controller: Logout a user
+const logoutUser = asyncHandler(async (req, res) => {
+  // Remove refresh token from DB
+  await User.findByIdAndUpdate(
+    req.body._id,
+    {
+      $set: {
+        refreshToken: undefined,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  // Cookie options
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  // Clear cookies and send response
+  res
+    .status(200)
+    .clearCookies("accessToken", options)
+    .clearCookies("refreshToken", options)
+    .json(200, {}, "User logged out successfully");
+});
+
+// Export controllers
+export { registerUser, loginUser, logoutUser };
