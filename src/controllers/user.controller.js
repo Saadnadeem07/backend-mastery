@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js"; // Custom API error response ha
 import { ApiResponse } from "../utils/ApiResponse.js"; // Standardized API response format
 import { User } from "../models/user.model.js"; // User model for DB operations
 import { uploadOnCloudinary } from "../utils/cloudinary.js"; // Utility for uploading files to Cloudinary
-
+import jwt from "jsonwebtoken";
 // Utility function: Generate access and refresh tokens for a user
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -181,11 +181,69 @@ const logoutUser = asyncHandler(async (req, res) => {
       .status(200)
       .clearCookie("accessToken", options)
       .clearCookie("refreshToken", options)
-      .json(200, "User logged out successfully");
+      .json({ status: 200, message: "User logged out successfully" });
   } catch (error) {
     console.error(error);
   }
 });
 
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  try {
+    const userRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+    if (!userRefreshToken) {
+      throw new ApiError(401, "Invalid Request Your Refresh Token not found");
+    }
+
+    //we can get the userID from the decoded data - then from the decoded one whole uswer form DB
+    const decodedToken = await jwt.verify(
+      userRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+
+    if (!decodedToken) {
+      throw new ApiError("404", "Decoded Token Not found");
+    }
+
+    let userId = decodedToken?._id;
+    let user = await User.findById(userId);
+
+    if (user.refreshToken !== userRefreshToken) {
+      console.log("Invalid Refresh Token");
+    }
+
+    const { accessToken, refreshToken } =
+      await generateAccessAndRefreshToken(userId);
+
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+    res
+      .status(200)
+      .cookie("accessToken", accessToken)
+      .cookie("refreshToken", refreshToken)
+      .json(
+        new ApiResponse(
+          200,
+          { accessToken, refreshToken },
+          "Access token refreshed successfully!"
+        )
+      );
+
+    //  .json({
+    //   status: 200,
+    //   accessToken,
+    //   refreshToken,
+    //   message: "Access token refreshed successfully!",
+    // });
+  } catch (error) {
+    throw new ApiError(
+      401,
+      error?.message || "An error occured during refreshign Access Token"
+    );
+  }
+});
+
 // Export controllers
-export { registerUser, loginUser, logoutUser };
+export { registerUser, loginUser, logoutUser, refreshAccessToken };
