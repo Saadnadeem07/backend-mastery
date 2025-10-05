@@ -33,12 +33,25 @@ const userSchema = new mongoose.Schema(
     },
 
     avatar: {
-      type: String, // Public URL of the user’s avatar (e.g. Cloudinary, S3).
-      required: true,
+      secureUrl: {
+        type: String,
+        required: true,
+      },
+      publicId: {
+        type: String,
+        required: true,
+      },
     },
 
     coverImage: {
-      type: String, // Optional profile cover image URL.
+      secureUrl: {
+        type: String,
+        required: true,
+      },
+      publicId: {
+        type: String,
+        required: true,
+      },
     },
 
     watchHistory: [
