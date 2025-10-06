@@ -91,8 +91,8 @@ saadnadeem07-backend-mastery/
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/saadnadeem07/saadnadeem07-backend-mastery.git
-   cd saadnadeem07-backend-mastery
+   git clone https://github.com/saadnadeem07/backend-mastery.git
+   cd backend-mastery
    ```
 
 2. **Install Dependencies**
